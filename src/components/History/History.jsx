@@ -3,6 +3,8 @@ import React, { useCallback, useContext, useEffect, useState } from "react";
 import { context } from "../../context/context";
 import { API_ENDPOINTS, apiGet, apiPostJson } from "../../services/api";
 
+import "../../styles/analysisPages.css";
+
 export const History = () => {
   const { user } = useContext(context);
 
@@ -79,46 +81,47 @@ export const History = () => {
   }, [loadHistory]);
 
   return (
-    <div style={{ padding: "40px 80px" }}>
-      <h1>Analysis history</h1>
+    <div className="analysis-page">
+      <header className="analysis-page__header">
+        <h1 className="analysis-page__title">Analysis history</h1>
 
-      <p>
-        This section shows the micrograph analyses performed by the current
-        user.
-      </p>
+        <p className="analysis-page__description">
+          Review previous micrograph analyses, open generated images and create
+          downloadable reports.
+        </p>
 
-      <button
-        type="button"
-        onClick={loadHistory}
-        disabled={isLoading}
-        style={{
-          marginTop: "20px",
-          padding: "10px 24px",
-          cursor: isLoading ? "not-allowed" : "pointer",
-        }}
-      >
-        {isLoading ? "Loading..." : "Refresh history"}
-      </button>
+        <div className="analysis-actions">
+          <button
+            className="analysis-button analysis-button--primary"
+            type="button"
+            onClick={loadHistory}
+            disabled={isLoading}
+          >
+            {isLoading ? "Loading..." : "Refresh history"}
+          </button>
+        </div>
+      </header>
 
       {errorMessage && (
-        <div style={{ marginTop: "25px", color: "red" }}>
+        <div className="analysis-alert analysis-alert--error">
           <strong>Error:</strong> {errorMessage}
         </div>
       )}
 
       {!isLoading && analyses.length === 0 && !errorMessage && (
-        <div style={{ marginTop: "35px" }}>
-          <p>No analyses were found for this user.</p>
+        <div className="analysis-empty-state">
+          No analyses were found for this user.
         </div>
       )}
 
-      <div style={{ marginTop: "35px" }}>
+      <section>
         {analyses.map((item) => {
           const analysis = item.analysis;
           const micrograph = item.micrograph;
           const result = item.result;
 
           const originalFilename = micrograph?.stored_filename || "";
+
           const segmentedFilename = result?.segmented_image_path
             ? getFilenameFromPath(result.segmented_image_path)
             : "";
@@ -137,79 +140,84 @@ export const History = () => {
             generatingReportAnalysisId === analysis.id;
 
           return (
-            <div
-              key={analysis.id}
-              style={{
-                marginBottom: "25px",
-                padding: "20px",
-                border: "1px solid #dddddd",
-                borderRadius: "8px",
-                maxWidth: "850px",
-              }}
-            >
-              <h2>Analysis #{analysis.id}</h2>
+            <article className="analysis-card" key={analysis.id}>
+              <h2 className="analysis-card__title">Analysis #{analysis.id}</h2>
 
-              <p>
-                <strong>Status:</strong> {analysis.status}
-              </p>
+              <div className="analysis-result-list">
+                <div className="analysis-result-row">
+                  <strong>Status</strong>
+                  <span>{analysis.status}</span>
+                </div>
 
-              <p>
-                <strong>Model:</strong> {analysis.model_name}
-              </p>
+                <div className="analysis-result-row">
+                  <strong>Model</strong>
+                  <span>{analysis.model_name}</span>
+                </div>
 
-              <p>
-                <strong>Started at:</strong> {analysis.started_at}
-              </p>
+                <div className="analysis-result-row">
+                  <strong>Started at</strong>
+                  <span>{analysis.started_at}</span>
+                </div>
 
-              <p>
-                <strong>Completed at:</strong>{" "}
-                {analysis.completed_at || "Not completed"}
-              </p>
+                <div className="analysis-result-row">
+                  <strong>Completed at</strong>
+                  <span>{analysis.completed_at || "Not completed"}</span>
+                </div>
+              </div>
 
               {micrograph && (
                 <>
                   <hr />
 
-                  <h3>Micrograph</h3>
+                  <h3 className="analysis-card__title">Micrograph</h3>
 
-                  <p>
-                    <strong>Original filename:</strong>{" "}
-                    {micrograph.original_filename}
-                  </p>
+                  <div className="analysis-result-list">
+                    <div className="analysis-result-row">
+                      <strong>Original filename</strong>
+                      <span>{micrograph.original_filename}</span>
+                    </div>
 
-                  <p>
-                    <strong>Stored filename:</strong>{" "}
-                    {micrograph.stored_filename}
-                  </p>
+                    <div className="analysis-result-row">
+                      <strong>Stored filename</strong>
+                      <span>{micrograph.stored_filename}</span>
+                    </div>
 
-                  <p>
-                    <strong>Type:</strong>{" "}
-                    {micrograph.micrograph_type || "Not specified"}
-                  </p>
+                    <div className="analysis-result-row">
+                      <strong>Type</strong>
+                      <span>
+                        {micrograph.micrograph_type || "Not specified"}
+                      </span>
+                    </div>
 
-                  <p>
-                    <strong>Scale:</strong>{" "}
-                    {micrograph.scale_value
-                      ? `${micrograph.scale_value} ${micrograph.scale_unit}`
-                      : "Not specified"}
-                  </p>
+                    <div className="analysis-result-row">
+                      <strong>Scale</strong>
+                      <span>
+                        {micrograph.scale_value
+                          ? `${micrograph.scale_value} ${micrograph.scale_unit}`
+                          : "Not specified"}
+                      </span>
+                    </div>
 
-                  <p>
-                    <strong>Description:</strong>{" "}
-                    {micrograph.description || "Not specified"}
-                  </p>
+                    <div className="analysis-result-row">
+                      <strong>Description</strong>
+                      <span>{micrograph.description || "Not specified"}</span>
+                    </div>
+                  </div>
 
-                  {originalFilename && (
-                    <a
-                      href={API_ENDPOINTS.micrographs.originalFile(
-                        originalFilename,
-                      )}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Open original micrograph
-                    </a>
-                  )}
+                  <div className="analysis-links">
+                    {originalFilename && (
+                      <a
+                        className="analysis-link"
+                        href={API_ENDPOINTS.micrographs.originalFile(
+                          originalFilename,
+                        )}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Open original micrograph
+                      </a>
+                    )}
+                  </div>
                 </>
               )}
 
@@ -217,60 +225,64 @@ export const History = () => {
                 <>
                   <hr />
 
-                  <h3>Result</h3>
+                  <h3 className="analysis-card__title">Result</h3>
 
-                  <p>
-                    <strong>Particle count:</strong> {result.particle_count}
-                  </p>
+                  <div className="analysis-result-list">
+                    <div className="analysis-result-row">
+                      <strong>Particle count</strong>
+                      <span>{result.particle_count}</span>
+                    </div>
 
-                  <p>
-                    <strong>Total masks:</strong> {result.total_masks}
-                  </p>
+                    <div className="analysis-result-row">
+                      <strong>Total masks</strong>
+                      <span>{result.total_masks}</span>
+                    </div>
 
-                  <p>
-                    <strong>Valid masks:</strong> {result.valid_masks}
-                  </p>
+                    <div className="analysis-result-row">
+                      <strong>Valid masks</strong>
+                      <span>{result.valid_masks}</span>
+                    </div>
 
-                  <p>
-                    <strong>Rejected masks:</strong> {result.rejected_masks}
-                  </p>
+                    <div className="analysis-result-row">
+                      <strong>Rejected masks</strong>
+                      <span>{result.rejected_masks}</span>
+                    </div>
+                  </div>
 
-                  {segmentedFilename && (
-                    <a
-                      href={API_ENDPOINTS.micrographs.segmentedFile(
-                        segmentedFilename,
-                      )}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ display: "block", marginTop: "10px" }}
-                    >
-                      Open segmented image
-                      {summaryFilename && (
-                        <a
-                          href={API_ENDPOINTS.micrographs.segmentedFile(
-                            summaryFilename,
-                          )}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{ display: "block", marginTop: "10px" }}
-                        >
-                          Open summary figure
-                        </a>
-                      )}
-                    </a>
-                  )}
+                  <div className="analysis-links">
+                    {segmentedFilename && (
+                      <a
+                        className="analysis-link"
+                        href={API_ENDPOINTS.micrographs.segmentedFile(
+                          segmentedFilename,
+                        )}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Open segmented image
+                      </a>
+                    )}
 
-                  <div style={{ marginTop: "25px" }}>
+                    {summaryFilename && (
+                      <a
+                        className="analysis-link"
+                        href={API_ENDPOINTS.micrographs.segmentedFile(
+                          summaryFilename,
+                        )}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Open summary figure
+                      </a>
+                    )}
+                  </div>
+
+                  <div className="analysis-actions">
                     <button
+                      className="analysis-button analysis-button--secondary"
                       type="button"
                       onClick={() => handleGenerateReport(analysis.id)}
                       disabled={isGeneratingThisReport}
-                      style={{
-                        padding: "10px 24px",
-                        cursor: isGeneratingThisReport
-                          ? "not-allowed"
-                          : "pointer",
-                      }}
                     >
                       {isGeneratingThisReport
                         ? "Generating report..."
@@ -279,46 +291,48 @@ export const History = () => {
                   </div>
 
                   {generatedReport && (
-                    <div
-                      style={{
-                        marginTop: "20px",
-                        padding: "15px",
-                        border: "1px solid #dddddd",
-                        borderRadius: "8px",
-                      }}
-                    >
-                      <h4>Report generated successfully</h4>
+                    <div className="analysis-card">
+                      <h3 className="analysis-card__title">
+                        Report generated successfully
+                      </h3>
 
-                      <p>
-                        <strong>Report ID:</strong> {generatedReport.id}
-                      </p>
+                      <div className="analysis-result-list">
+                        <div className="analysis-result-row">
+                          <strong>Report ID</strong>
+                          <span>{generatedReport.id}</span>
+                        </div>
 
-                      <p>
-                        <strong>Filename:</strong> {generatedReport.filename}
-                      </p>
+                        <div className="analysis-result-row">
+                          <strong>Filename</strong>
+                          <span>{generatedReport.filename}</span>
+                        </div>
 
-                      <p>
-                        <strong>Generated at:</strong>{" "}
-                        {generatedReport.generated_at}
-                      </p>
+                        <div className="analysis-result-row">
+                          <strong>Generated at</strong>
+                          <span>{generatedReport.generated_at}</span>
+                        </div>
+                      </div>
 
-                      <a
-                        href={API_ENDPOINTS.reports.download(
-                          generatedReport.id,
-                        )}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Download report
-                      </a>
+                      <div className="analysis-links">
+                        <a
+                          className="analysis-link"
+                          href={API_ENDPOINTS.reports.download(
+                            generatedReport.id,
+                          )}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Download report
+                        </a>
+                      </div>
                     </div>
                   )}
                 </>
               )}
-            </div>
+            </article>
           );
         })}
-      </div>
+      </section>
     </div>
   );
 };

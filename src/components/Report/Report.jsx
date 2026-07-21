@@ -1,7 +1,11 @@
 import React, { useContext, useState } from "react";
 
 import { context } from "../../context/context";
-import { API_ENDPOINTS, apiPostFormData } from "../../services/api";
+import {
+  API_ENDPOINTS,
+  apiPostFormData,
+  apiPostJson,
+} from "../../services/api";
 
 export const Report = () => {
   const { user } = useContext(context);
@@ -13,7 +17,10 @@ export const Report = () => {
   const [description, setDescription] = useState("");
 
   const [uploadedMicrograph, setUploadedMicrograph] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [analysisResponse, setAnalysisResponse] = useState(null);
+
+  const [isUploading, setIsUploading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const clearForm = () => {
@@ -24,7 +31,7 @@ export const Report = () => {
     setDescription("");
   };
 
-  const handleSubmit = async (event) => {
+  const handleUpload = async (event) => {
     event.preventDefault();
 
     if (!file) {
@@ -32,9 +39,10 @@ export const Report = () => {
       return;
     }
 
-    setIsLoading(true);
+    setIsUploading(true);
     setErrorMessage("");
     setUploadedMicrograph(null);
+    setAnalysisResponse(null);
 
     const formData = new FormData();
 
@@ -64,9 +72,57 @@ export const Report = () => {
         error.message || "There was an error uploading the micrograph.",
       );
     } finally {
-      setIsLoading(false);
+      setIsUploading(false);
     }
   };
+
+  const handleRunAnalysis = async () => {
+    if (!uploadedMicrograph?.id) {
+      setErrorMessage(
+        "Please upload a micrograph before running the analysis.",
+      );
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setErrorMessage("");
+    setAnalysisResponse(null);
+
+    try {
+      const data = await apiPostJson(API_ENDPOINTS.analysis.run, {
+        micrograph_id: uploadedMicrograph.id,
+        user_id: user?.id || null,
+        model_name: "SAM2",
+        parameters: {
+          points_per_side: 44,
+          pred_iou_thresh: 0.85,
+          stability_score_thresh: 0.97,
+          min_mask_region_area: 1000,
+          box_nms_thresh: 0.5,
+        },
+      });
+
+      setAnalysisResponse(data);
+    } catch (error) {
+      setErrorMessage(
+        error.message || "There was an error running the analysis.",
+      );
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const getFilenameFromPath = (filePath) => {
+    if (!filePath) {
+      return "";
+    }
+
+    return filePath.split("\\").pop().split("/").pop();
+  };
+
+  const segmentedFilename = analysisResponse?.result?.segmented_image_path
+    ? getFilenameFromPath(analysisResponse.result.segmented_image_path)
+    : "";
 
   return (
     <div style={{ padding: "40px 80px" }}>
@@ -75,7 +131,7 @@ export const Report = () => {
       <p>Upload a TEM or SEM micrograph to start the analysis process.</p>
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={handleUpload}
         style={{ maxWidth: "650px", marginTop: "30px" }}
       >
         <div style={{ marginBottom: "20px" }}>
@@ -173,13 +229,13 @@ export const Report = () => {
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isUploading}
           style={{
             padding: "10px 24px",
-            cursor: isLoading ? "not-allowed" : "pointer",
+            cursor: isUploading ? "not-allowed" : "pointer",
           }}
         >
-          {isLoading ? "Uploading..." : "Upload micrograph"}
+          {isUploading ? "Uploading..." : "Upload micrograph"}
         </button>
       </form>
 
@@ -240,6 +296,74 @@ export const Report = () => {
           >
             Open uploaded micrograph
           </a>
+
+          <div style={{ marginTop: "25px" }}>
+            <button
+              type="button"
+              onClick={handleRunAnalysis}
+              disabled={isAnalyzing}
+              style={{
+                padding: "10px 24px",
+                cursor: isAnalyzing ? "not-allowed" : "pointer",
+              }}
+            >
+              {isAnalyzing ? "Running analysis..." : "Run analysis"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {analysisResponse && (
+        <div
+          style={{
+            marginTop: "35px",
+            padding: "20px",
+            border: "1px solid #dddddd",
+            borderRadius: "8px",
+            maxWidth: "750px",
+          }}
+        >
+          <h2>Analysis completed successfully</h2>
+
+          <p>
+            <strong>Analysis ID:</strong> {analysisResponse.analysis.id}
+          </p>
+
+          <p>
+            <strong>Status:</strong> {analysisResponse.analysis.status}
+          </p>
+
+          <p>
+            <strong>Model:</strong> {analysisResponse.analysis.model_name}
+          </p>
+
+          <p>
+            <strong>Particle count:</strong>{" "}
+            {analysisResponse.result.particle_count}
+          </p>
+
+          <p>
+            <strong>Total masks:</strong> {analysisResponse.result.total_masks}
+          </p>
+
+          <p>
+            <strong>Valid masks:</strong> {analysisResponse.result.valid_masks}
+          </p>
+
+          <p>
+            <strong>Rejected masks:</strong>{" "}
+            {analysisResponse.result.rejected_masks}
+          </p>
+
+          {segmentedFilename && (
+            <a
+              href={API_ENDPOINTS.micrographs.segmentedFile(segmentedFilename)}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open segmented image
+            </a>
+          )}
         </div>
       )}
     </div>

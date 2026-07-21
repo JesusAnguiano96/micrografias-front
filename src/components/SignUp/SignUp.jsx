@@ -1,100 +1,97 @@
-import React, { useState } from 'react'
-import { useContext } from "react";
-import { context } from '../../context/context'
+import React, { useState } from "react";
+
+import { API_ENDPOINTS, apiPostJson } from "../../services/api";
 
 export const SignUp = ({ setVisibleOther, setVisibleSelf }) => {
-  const { user } = useContext(context);
-
-  // Define states for input fields
   const [email, setEmail] = useState("");
-  const [occupation, setOccupation] = useState("");
+  const [occupation, setOccupation] = useState("student");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const clearForm = () => {
     setEmail("");
-    // setOccupation("");
+    setOccupation("student");
     setPassword("");
     setConfirmPassword("");
-  }
+  };
 
   const signUp = async (e) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
       alert("Passwords do not match");
-      clearForm(); // Clear the form when passwords don't match
+      clearForm();
       return;
     }
 
-    // API call to send data
     try {
-      const response = await fetch('https://apimas.onrender.com/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          email,
-          // occupation,
-          password
-        })
+      await apiPostJson(API_ENDPOINTS.auth.register, {
+        email,
+        occupation,
+        password,
       });
-      const data = await response.json();
-      console.log(data);
 
-      if (data.message == 'Email already in use') {
-        alert("Email already in use");
-        clearForm(); // Clear the form when passwords don't match
-        return;
-      }
-
+      alert("User registered successfully. Please log in.");
 
       setVisibleSelf(false);
       setVisibleOther(true);
     } catch (error) {
-      console.error("There was an error sending the data:", error);
+      alert(error.message || "There was an error creating the user");
+      clearForm();
     }
-  }
+  };
 
   return (
     <>
-      <div className='form-container-container'>
-        <h1 className='tittle-form'>Sign up</h1>
-        <div className='form-container'>
+      <div className="form-container-container">
+        <h1 className="tittle-form">Sign up</h1>
+
+        <div className="form-container">
           <form onSubmit={signUp}>
-            <input className='input-form'
+            <input
+              className="input-form"
               type="email"
               placeholder="Email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
 
-            {/* <select className='input-form' value={occupation} onChange={(e) => setOccupation(e.target.value)}>
-              <option value="" disabled>Select your occupation</option>
+            <select
+              className="input-form"
+              value={occupation}
+              onChange={(e) => setOccupation(e.target.value)}
+            >
               <option value="student">Student</option>
               <option value="teacher">Teacher</option>
               <option value="researcher">Researcher</option>
               <option value="other">Other</option>
-            </select> */}
+            </select>
 
-            <input className='input-form'
+            <input
+              className="input-form"
               type="password"
               placeholder="Password"
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
 
-            <input className='input-form'
+            <input
+              className="input-form"
               type="password"
               placeholder="Confirm password"
+              autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
             />
-            <button className='button-form'>Sign up</button>
+
+            <button className="button-form" type="submit">
+              Sign up
+            </button>
           </form>
         </div>
       </div>
     </>
-  )
-}
+  );
+};

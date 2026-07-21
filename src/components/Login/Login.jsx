@@ -1,83 +1,84 @@
-import React, { useState } from 'react'; // <-- Agregado useState
-import { useContext } from "react";
-import { context } from '../../context/context'
+import React, { useContext, useState } from "react";
+
+import { context } from "../../context/context";
+import { API_ENDPOINTS, apiPostJson } from "../../services/api";
 
 export const Login = ({ setVisibleOther, setVisibleSelf }) => {
+  const { setUser } = useContext(context);
 
-  const { setUser, setVisibleLogIn } = useContext(context);
-
-  // Estados para los inputs
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const clearForm = () => {
     setEmail("");
     setPassword("");
-  }
+  };
 
   const signUp = (e) => {
+    e.preventDefault();
     setVisibleSelf(false);
     setVisibleOther(true);
-  }
+  };
 
-  const login = async (e) => { // <-- Agregado async para permitir llamadas asíncronas
+  const login = async (e) => {
     e.preventDefault();
 
-    // Enviar datos a la API
     try {
-      const response = await fetch('https://apimas.onrender.com/userValidation', { // <-- Reemplaza 'URL_DEL_ENDPOINT' con la URL de tu API
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
+      const data = await apiPostJson(API_ENDPOINTS.auth.login, {
+        email,
+        password,
       });
 
-      const data = await response.json();
-      console.log(data)
-
-      if (data.message == 'User validated successfully') {
-        setUser(data.user);
-        setVisibleSelf(false);
-      } else {
-        alert("Wrong Email or Password");
-        clearForm(); // Clear the form when passwords don't match
-        return;
-      }
+      setUser(data.user);
+      setVisibleSelf(false);
     } catch (error) {
-      console.error('Hubo un error al hacer login:', error);
+      alert(error.message || "Wrong email or password");
+      clearForm();
     }
-  }
+  };
 
   return (
     <>
-      <div className='form-container-container'>
-        <h1 className='tittle-form'>Login</h1>
-        <div className='form-container'>
-          <form>
-            <input className='input-form'
+      <div className="form-container-container">
+        <h1 className="tittle-form">Login</h1>
+
+        <div className="form-container">
+          <form onSubmit={login}>
+            <input
+              className="input-form"
               type="email"
               placeholder="Email"
-              autoSave='false'
-              value={email} // <-- Vincula el estado 'email'
-              onChange={(e) => setEmail(e.target.value)} // <-- Actualiza el estado 'email' con cada cambio
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
             />
-            <input className='input-form'
+
+            <input
+              className="input-form"
               type="password"
               placeholder="Password"
-              value={password} // <-- Vincula el estado 'password'
-              onChange={(e) => setPassword(e.target.value)} // <-- Actualiza el estado 'password' con cada cambio
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
-            <a href="#" onClick={() => { }}>
+
+            <a href="#" onClick={(e) => e.preventDefault()}>
               Forgot password?
             </a>
-            <button className='button-form' onClick={(e) => login(e)}>Login</button>
-            <p>Not a member? <a href="#" onClick={() => signUp()}>
-              Signup
-            </a></p>
+
+            <button className="button-form" type="submit">
+              Login
+            </button>
+
+            <p>
+              Not a member?{" "}
+              <a href="#" onClick={signUp}>
+                Signup
+              </a>
+            </p>
           </form>
         </div>
       </div>
     </>
-  )
-}
+  );
+};

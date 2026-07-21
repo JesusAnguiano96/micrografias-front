@@ -17,7 +17,7 @@ export const Router = () => {
       <NavbarSAM />
 
       <Routes>
-        {user !== "" ? (
+        {user ? (
           <>
             <Route path="/report" element={<Report />} />
             <Route path="/history" element={<History />} />

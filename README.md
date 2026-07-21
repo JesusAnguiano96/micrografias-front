@@ -1,70 +1,458 @@
-# Getting Started with Create React App
+# Micrograph Analysis System - Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Frontend React para el sistema de análisis de micrografías TEM/SEM orientado al conteo de nanopartículas esféricas.
 
-## Available Scripts
+Esta interfaz permite al usuario registrarse, iniciar sesión, cargar micrografías, seleccionar el modelo de análisis, ejecutar segmentación, visualizar resultados, consultar historial y descargar reportes.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Estado actual del frontend
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+El frontend se comunica con el backend Flask mediante una API REST.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Funcionalidades disponibles:
 
-### `npm test`
+```text
+- registro de usuarios
+- inicio de sesión
+- carga de micrografías TEM/SEM
+- selección de modelo: SAM classic o SAM 2
+- ejecución de análisis
+- visualización de resultados
+- apertura de imagen original
+- apertura de imagen segmentada
+- apertura de figura resumen
+- generación de reportes
+- descarga de reportes
+- consulta de historial
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+---
 
-### `npm run build`
+## Modelos disponibles desde la interfaz
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Actualmente la interfaz permite seleccionar:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```text
+SAM classic -> ejecuta el modelo SAM clásico real en el backend
+SAM 2       -> ejecuta un flujo simulado temporal en el backend
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+La integración real de SAM 2 queda pendiente para una etapa posterior.
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Tecnologías principales
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```text
+React
+React Router
+JavaScript
+CSS
+Fetch API
+Sass
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+---
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Estructura principal
 
-## Learn More
+```text
+frontMAS/
+├── public/
+├── src/
+│   ├── components/
+│   │   ├── History/
+│   │   │   └── History.jsx
+│   │   ├── Layout/
+│   │   │   ├── Footer.jsx
+│   │   │   └── NavbarSAM.jsx
+│   │   ├── Login/
+│   │   ├── Report/
+│   │   │   └── Report.jsx
+│   │   ├── SignUp/
+│   │   └── IndexSAM.jsx
+│   ├── context/
+│   │   └── context.js
+│   ├── router/
+│   │   └── Router.jsx
+│   ├── services/
+│   │   └── api.js
+│   ├── styles/
+│   │   └── analysisPages.css
+│   ├── App.js
+│   └── index.js
+├── package.json
+└── README.md
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## Instalación
 
-### Code Splitting
+Desde la carpeta `frontMAS`:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```powershell
+npm install
+```
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Ejecutar el frontend
 
-### Making a Progressive Web App
+```powershell
+npm start
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+La aplicación se ejecuta normalmente en:
 
-### Advanced Configuration
+```text
+http://localhost:3000
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## Conexión con el backend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+El frontend consume la API mediante:
 
-### `npm run build` fails to minify
+```text
+src/services/api.js
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Por defecto, la URL base es:
+
+```text
+http://127.0.0.1:5000
+```
+
+Esto permite trabajar localmente con el backend Flask.
+
+---
+
+## Variable de entorno opcional
+
+Para cambiar la URL del backend, crear un archivo `.env` en la raíz de `frontMAS`:
+
+```text
+REACT_APP_API_BASE_URL=http://127.0.0.1:5000
+```
+
+Ejemplo para despliegue:
+
+```text
+REACT_APP_API_BASE_URL=https://backend.example.com
+```
+
+Después de modificar `.env`, se debe reiniciar el servidor de React.
+
+---
+
+## Flujo principal de usuario
+
+```text
+Inicio
+↓
+Sign up / Login
+↓
+Report
+↓
+Upload micrograph
+↓
+Select segmentation model
+↓
+Run analysis
+↓
+Open segmented image
+↓
+Open summary figure
+↓
+Generate report
+↓
+Download report
+```
+
+---
+
+## Pantalla Report
+
+La pantalla `Report` permite crear un nuevo análisis.
+
+Archivo principal:
+
+```text
+src/components/Report/Report.jsx
+```
+
+Funciones principales:
+
+```text
+- seleccionar micrografía
+- seleccionar tipo TEM o SEM
+- seleccionar modelo SAM classic o SAM 2
+- capturar escala
+- capturar descripción
+- subir micrografía al backend
+- ejecutar análisis
+- mostrar conteo de partículas
+- mostrar total de máscaras
+- mostrar máscaras válidas
+- mostrar máscaras rechazadas
+- abrir imagen segmentada
+- abrir figura resumen
+- generar reporte
+- descargar reporte
+```
+
+---
+
+## Pantalla History
+
+La pantalla `History` permite consultar análisis previos.
+
+Archivo principal:
+
+```text
+src/components/History/History.jsx
+```
+
+Funciones principales:
+
+```text
+- cargar historial del usuario
+- mostrar información del análisis
+- mostrar información de la micrografía
+- mostrar resultados del análisis
+- abrir micrografía original
+- abrir imagen segmentada
+- abrir figura resumen
+- generar reporte para análisis previos
+- descargar reporte
+```
+
+---
+
+## Servicio de API
+
+Archivo:
+
+```text
+src/services/api.js
+```
+
+Define endpoints para:
+
+```text
+health
+auth
+micrographs
+analysis
+reports
+```
+
+Endpoints consumidos:
+
+```text
+GET  /api/health
+POST /api/auth/register
+POST /api/auth/login
+POST /api/micrographs/upload
+GET  /api/micrographs
+POST /api/analysis/run
+GET  /api/analysis/history
+GET  /api/analysis/<analysis_id>
+POST /api/reports/generate
+GET  /api/reports/<report_id>/download
+```
+
+---
+
+## Estilos principales
+
+El estilo de las pantallas de análisis está en:
+
+```text
+src/styles/analysisPages.css
+```
+
+Este archivo contiene estilos para:
+
+```text
+- layout general
+- tarjetas
+- formularios
+- botones
+- enlaces
+- mensajes de error
+- estados vacíos
+- vista responsive
+```
+
+---
+
+## Componentes principales
+
+```text
+IndexSAM.jsx       -> página principal del sistema
+NavbarSAM.jsx      -> barra de navegación
+Report.jsx         -> creación de nuevo análisis
+History.jsx        -> historial de análisis
+Login.jsx          -> inicio de sesión
+SignUp.jsx         -> registro de usuario
+Footer.jsx         -> pie de página
+```
+
+---
+
+## Rutas principales
+
+Configuradas en:
+
+```text
+src/router/Router.jsx
+```
+
+Rutas disponibles:
+
+```text
+/         -> página principal
+/report   -> nuevo análisis
+/history  -> historial de análisis
+```
+
+Las rutas `/report` y `/history` dependen de que exista un usuario autenticado en el contexto de React.
+
+---
+
+## Contexto global
+
+El estado global se maneja en:
+
+```text
+src/context/context.js
+```
+
+Se utiliza para compartir:
+
+```text
+- usuario actual
+- funciones de autenticación
+- estados de modales
+```
+
+---
+
+## Prueba local completa
+
+Para probar el sistema completo localmente, primero correr el backend:
+
+```powershell
+cd "C:\Users\jesus\Documents\Maestria\Tesis\Código de Diego\apiMAS"
+conda activate tesis-mas-api
+python run.py
+```
+
+Luego correr el frontend:
+
+```powershell
+cd "C:\Users\jesus\Documents\Maestria\Tesis\Código de Diego\frontMAS"
+npm start
+```
+
+Después:
+
+```text
+1. Abrir http://localhost:3000
+2. Registrarse o iniciar sesión
+3. Entrar a Report
+4. Subir una micrografía
+5. Seleccionar SAM classic
+6. Ejecutar Run analysis
+7. Abrir Open segmented image
+8. Abrir Open summary figure
+9. Generar reporte
+10. Descargar reporte
+11. Entrar a History
+12. Verificar que el análisis aparezca en el historial
+```
+
+---
+
+## Salidas esperadas
+
+Después de ejecutar un análisis con SAM classic, la interfaz debe mostrar:
+
+```text
+Analysis completed successfully
+Model: SAM
+Particle count: valor real
+Total masks: valor real
+Valid masks: valor real
+Rejected masks: valor real
+Open segmented image
+Open summary figure
+Generate report
+```
+
+---
+
+## Notas importantes
+
+El frontend no ejecuta los modelos de segmentación directamente.
+
+El análisis se realiza en el backend Flask.
+
+El frontend únicamente:
+
+```text
+- envía la micrografía
+- envía parámetros de análisis
+- muestra la respuesta
+- abre archivos generados
+- solicita reportes
+```
+
+---
+
+## Estado del prototipo
+
+Funcionalidades implementadas:
+
+```text
+- interfaz principal
+- autenticación básica
+- carga de micrografías
+- selección de modelo
+- conexión con backend Flask
+- ejecución de análisis SAM classic
+- flujo SAM2 simulado
+- vista de resultados
+- historial
+- generación de reportes
+- descarga de reportes
+- estilos visuales mejorados para Report e History
+```
+
+Pendiente para etapas posteriores:
+
+```text
+- autenticación persistente con tokens o sesiones
+- integración real de SAM 2
+- configuración avanzada de parámetros desde interfaz
+- previsualización integrada de imágenes
+- reportes PDF
+- despliegue completo como SaaS
+- diseño responsive más refinado
+```
+
+---
+
+## Documentación relacionada
+
+El backend contiene documentación adicional:
+
+```text
+apiMAS/README.md
+apiMAS/SAM_SETUP.md
+apiMAS/API_REFERENCE.md
+```

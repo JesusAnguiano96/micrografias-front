@@ -1,34 +1,34 @@
-import React from 'react'
+import React, { useContext } from "react";
 import { Routes, Route, BrowserRouter, Navigate } from "react-router-dom";
-import { History } from '../components/History/History';
-import { Index } from '../components/Index'
-import { Footer } from './../components/Layout/Footer'
-import { Navbar } from './../components/Layout/Navbar'
-import { useContext } from "react";
-import { context } from './../context/context'
-import { Report } from '../components/Report/Report';
-import { Plants } from '../components/Plants/Plants';
+
+import { context } from "./../context/context";
+
+import { History } from "../components/History/History";
+import { Index as IndexSAM } from "../components/IndexSAM";
+import { Footer } from "./../components/Layout/Footer";
+import { Navbar as NavbarSAM } from "./../components/Layout/NavbarSAM";
+import { Report } from "../components/Report/Report";
 
 export const Router = () => {
   const { user } = useContext(context);
 
   return (
     <BrowserRouter>
-      <Navbar />
+      <NavbarSAM />
+
       <Routes>
-        {user != '' ? (
+        {user !== "" ? (
           <>
             <Route path="/report" element={<Report />} />
             <Route path="/history" element={<History />} />
-            <Route path="/plants" element={<Plants />} />
           </>
-        ) :
-          ''
-        }
-        <Route path="/" element={<Index />} />
-        <Route path="/*" element={<Navigate to='/' />} />
+        ) : null}
+
+        <Route path="/" element={<IndexSAM />} />
+        <Route path="/*" element={<Navigate to="/" />} />
       </Routes>
+
       <Footer />
     </BrowserRouter>
-  )
-}
+  );
+};

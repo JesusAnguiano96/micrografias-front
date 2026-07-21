@@ -123,6 +123,15 @@ export const History = () => {
             ? getFilenameFromPath(result.segmented_image_path)
             : "";
 
+          const summaryFilename = segmentedFilename.includes(
+            "_sam_legacy_annotated.png",
+          )
+            ? segmentedFilename.replace(
+                "_sam_legacy_annotated.png",
+                "_sam_legacy_summary.png",
+              )
+            : "";
+
           const generatedReport = generatedReports[analysis.id];
           const isGeneratingThisReport =
             generatingReportAnalysisId === analysis.id;
@@ -236,6 +245,18 @@ export const History = () => {
                       style={{ display: "block", marginTop: "10px" }}
                     >
                       Open segmented image
+                      {summaryFilename && (
+                        <a
+                          href={API_ENDPOINTS.micrographs.segmentedFile(
+                            summaryFilename,
+                          )}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ display: "block", marginTop: "10px" }}
+                        >
+                          Open summary figure
+                        </a>
+                      )}
                     </a>
                   )}
 

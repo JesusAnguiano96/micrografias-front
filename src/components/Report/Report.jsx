@@ -7,6 +7,8 @@ import {
   apiPostJson,
 } from "../../services/api";
 
+import "../../styles/analysisPages.css";
+
 export const Report = () => {
   const { user } = useContext(context);
 
@@ -169,336 +171,320 @@ export const Report = () => {
     : "";
 
   return (
-    <div style={{ padding: "40px 80px" }}>
-      <h1>New micrograph analysis</h1>
+    <div className="analysis-page">
+      <header className="analysis-page__header">
+        <h1 className="analysis-page__title">New micrograph analysis</h1>
+        <p className="analysis-page__description">
+          Upload a TEM or SEM micrograph, select the segmentation model and
+          generate analysis outputs with particle counting, measurements and
+          report files.
+        </p>
+      </header>
 
-      <p>Upload a TEM or SEM micrograph to start the analysis process.</p>
-
-      <form
-        onSubmit={handleUpload}
-        style={{ maxWidth: "650px", marginTop: "30px" }}
-      >
-        <div style={{ marginBottom: "20px" }}>
-          <label>
-            <strong>Micrograph image</strong>
-          </label>
-
-          <input
-            type="file"
-            accept=".png,.jpg,.jpeg,.tif,.tiff,.bmp"
-            onChange={(event) => setFile(event.target.files[0])}
-            style={{ display: "block", marginTop: "8px" }}
-          />
-        </div>
-
-        <div style={{ marginBottom: "20px" }}>
-          <label>
-            <strong>Micrograph type</strong>
-          </label>
-
-          <select
-            value={micrographType}
-            onChange={(event) => setMicrographType(event.target.value)}
-            style={{
-              display: "block",
-              marginTop: "8px",
-              padding: "8px",
-              width: "100%",
-            }}
-          >
-            <option value="TEM">TEM</option>
-            <option value="SEM">SEM</option>
-          </select>
-        </div>
-
-        <div style={{ marginBottom: "20px" }}>
-          <label>
-            <strong>Segmentation model</strong>
-          </label>
-
-          <select
-            value={modelName}
-            onChange={(event) => setModelName(event.target.value)}
-            style={{
-              display: "block",
-              marginTop: "8px",
-              padding: "8px",
-              width: "100%",
-            }}
-          >
-            <option value="SAM">SAM classic</option>
-            <option value="SAM2">SAM 2</option>
-          </select>
-
-          <small style={{ display: "block", marginTop: "6px" }}>
-            SAM classic runs the real legacy model. SAM 2 is currently
-            simulated.
-          </small>
-        </div>
-
-        <div style={{ marginBottom: "20px" }}>
-          <label>
-            <strong>Scale value</strong>
-          </label>
-
-          <input
-            type="number"
-            step="any"
-            placeholder="Example: 100"
-            value={scaleValue}
-            onChange={(event) => setScaleValue(event.target.value)}
-            style={{
-              display: "block",
-              marginTop: "8px",
-              padding: "8px",
-              width: "100%",
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: "20px" }}>
-          <label>
-            <strong>Scale unit</strong>
-          </label>
-
-          <select
-            value={scaleUnit}
-            onChange={(event) => setScaleUnit(event.target.value)}
-            style={{
-              display: "block",
-              marginTop: "8px",
-              padding: "8px",
-              width: "100%",
-            }}
-          >
-            <option value="nm">nm</option>
-            <option value="µm">µm</option>
-            <option value="px">px</option>
-          </select>
-        </div>
-
-        <div style={{ marginBottom: "20px" }}>
-          <label>
-            <strong>Description</strong>
-          </label>
-
-          <textarea
-            placeholder="Add a short description for this analysis."
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            rows="4"
-            style={{
-              display: "block",
-              marginTop: "8px",
-              padding: "8px",
-              width: "100%",
-            }}
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={isUploading}
-          style={{
-            padding: "10px 24px",
-            cursor: isUploading ? "not-allowed" : "pointer",
-          }}
-        >
-          {isUploading ? "Uploading..." : "Upload micrograph"}
-        </button>
-      </form>
-
-      {errorMessage && (
-        <div style={{ marginTop: "25px", color: "red" }}>
-          <strong>Error:</strong> {errorMessage}
-        </div>
-      )}
-
-      {uploadedMicrograph && (
-        <div
-          style={{
-            marginTop: "35px",
-            padding: "20px",
-            border: "1px solid #dddddd",
-            borderRadius: "8px",
-            maxWidth: "750px",
-          }}
-        >
-          <h2>Micrograph uploaded successfully</h2>
-
-          <p>
-            <strong>ID:</strong> {uploadedMicrograph.id}
+      <div className="analysis-layout">
+        <section className="analysis-card">
+          <h2 className="analysis-card__title">Upload configuration</h2>
+          <p className="analysis-card__subtitle">
+            Configure the micrograph metadata before running the segmentation.
           </p>
 
-          <p>
-            <strong>Original filename:</strong>{" "}
-            {uploadedMicrograph.original_filename}
-          </p>
+          <form className="analysis-form" onSubmit={handleUpload}>
+            <div className="analysis-form__group">
+              <label className="analysis-form__label">Micrograph image</label>
+              <input
+                className="analysis-form__file"
+                type="file"
+                accept=".png,.jpg,.jpeg,.tif,.tiff,.bmp"
+                onChange={(event) => setFile(event.target.files[0])}
+              />
+            </div>
 
-          <p>
-            <strong>Stored filename:</strong>{" "}
-            {uploadedMicrograph.stored_filename}
-          </p>
+            <div className="analysis-form__group">
+              <label className="analysis-form__label">Micrograph type</label>
+              <select
+                className="analysis-form__select"
+                value={micrographType}
+                onChange={(event) => setMicrographType(event.target.value)}
+              >
+                <option value="TEM">TEM</option>
+                <option value="SEM">SEM</option>
+              </select>
+            </div>
 
-          <p>
-            <strong>Type:</strong> {uploadedMicrograph.micrograph_type}
-          </p>
+            <div className="analysis-form__group">
+              <label className="analysis-form__label">Segmentation model</label>
+              <select
+                className="analysis-form__select"
+                value={modelName}
+                onChange={(event) => setModelName(event.target.value)}
+              >
+                <option value="SAM">SAM classic</option>
+                <option value="SAM2">SAM 2</option>
+              </select>
 
-          <p>
-            <strong>Selected model:</strong> {modelName}
-          </p>
+              <small className="analysis-form__help">
+                SAM classic runs the real legacy model. SAM 2 is currently
+                simulated.
+              </small>
+            </div>
 
-          <p>
-            <strong>Scale:</strong>{" "}
-            {uploadedMicrograph.scale_value
-              ? `${uploadedMicrograph.scale_value} ${uploadedMicrograph.scale_unit}`
-              : "Not specified"}
-          </p>
+            <div className="analysis-form__group">
+              <label className="analysis-form__label">Scale value</label>
+              <input
+                className="analysis-form__input"
+                type="number"
+                step="any"
+                placeholder="Example: 100"
+                value={scaleValue}
+                onChange={(event) => setScaleValue(event.target.value)}
+              />
+            </div>
 
-          <p>
-            <strong>Description:</strong>{" "}
-            {uploadedMicrograph.description || "Not specified"}
-          </p>
+            <div className="analysis-form__group">
+              <label className="analysis-form__label">Scale unit</label>
+              <select
+                className="analysis-form__select"
+                value={scaleUnit}
+                onChange={(event) => setScaleUnit(event.target.value)}
+              >
+                <option value="nm">nm</option>
+                <option value="µm">µm</option>
+                <option value="px">px</option>
+              </select>
+            </div>
 
-          <a
-            href={API_ENDPOINTS.micrographs.originalFile(
-              uploadedMicrograph.stored_filename,
-            )}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Open uploaded micrograph
-          </a>
+            <div className="analysis-form__group">
+              <label className="analysis-form__label">Description</label>
+              <textarea
+                className="analysis-form__textarea"
+                placeholder="Add a short description for this analysis."
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                rows="4"
+              />
+            </div>
 
-          <div style={{ marginTop: "25px" }}>
             <button
-              type="button"
-              onClick={handleRunAnalysis}
-              disabled={isAnalyzing}
-              style={{
-                padding: "10px 24px",
-                cursor: isAnalyzing ? "not-allowed" : "pointer",
-              }}
+              className="analysis-button analysis-button--primary"
+              type="submit"
+              disabled={isUploading}
             >
-              {isAnalyzing ? "Running analysis..." : "Run analysis"}
+              {isUploading ? "Uploading..." : "Upload micrograph"}
             </button>
-          </div>
-        </div>
-      )}
+          </form>
 
-      {analysisResponse && (
-        <div
-          style={{
-            marginTop: "35px",
-            padding: "20px",
-            border: "1px solid #dddddd",
-            borderRadius: "8px",
-            maxWidth: "750px",
-          }}
-        >
-          <h2>Analysis completed successfully</h2>
+          {errorMessage && (
+            <div className="analysis-alert analysis-alert--error">
+              <strong>Error:</strong> {errorMessage}
+            </div>
+          )}
+        </section>
 
-          <p>
-            <strong>Analysis ID:</strong> {analysisResponse.analysis.id}
-          </p>
-
-          <p>
-            <strong>Status:</strong> {analysisResponse.analysis.status}
-          </p>
-
-          <p>
-            <strong>Model:</strong> {analysisResponse.analysis.model_name}
-          </p>
-
-          <p>
-            <strong>Particle count:</strong>{" "}
-            {analysisResponse.result.particle_count}
-          </p>
-
-          <p>
-            <strong>Total masks:</strong> {analysisResponse.result.total_masks}
-          </p>
-
-          <p>
-            <strong>Valid masks:</strong> {analysisResponse.result.valid_masks}
-          </p>
-
-          <p>
-            <strong>Rejected masks:</strong>{" "}
-            {analysisResponse.result.rejected_masks}
-          </p>
-
-          {segmentedFilename && (
-            <a
-              href={API_ENDPOINTS.micrographs.segmentedFile(segmentedFilename)}
-              target="_blank"
-              rel="noreferrer"
-              style={{ display: "block", marginTop: "10px" }}
-            >
-              Open segmented image
-            </a>
+        <section>
+          {!uploadedMicrograph && !analysisResponse && !generatedReport && (
+            <div className="analysis-empty-state">
+              Upload a micrograph to see the analysis workflow here.
+            </div>
           )}
 
-          {summaryFilename && (
-            <a
-              href={API_ENDPOINTS.micrographs.segmentedFile(summaryFilename)}
-              target="_blank"
-              rel="noreferrer"
-              style={{ display: "block", marginTop: "10px" }}
-            >
-              Open summary figure
-            </a>
+          {uploadedMicrograph && (
+            <div className="analysis-card">
+              <h2 className="analysis-card__title">
+                Micrograph uploaded successfully
+              </h2>
+
+              <div className="analysis-result-list">
+                <div className="analysis-result-row">
+                  <strong>ID</strong>
+                  <span>{uploadedMicrograph.id}</span>
+                </div>
+
+                <div className="analysis-result-row">
+                  <strong>Original filename</strong>
+                  <span>{uploadedMicrograph.original_filename}</span>
+                </div>
+
+                <div className="analysis-result-row">
+                  <strong>Stored filename</strong>
+                  <span>{uploadedMicrograph.stored_filename}</span>
+                </div>
+
+                <div className="analysis-result-row">
+                  <strong>Type</strong>
+                  <span>{uploadedMicrograph.micrograph_type}</span>
+                </div>
+
+                <div className="analysis-result-row">
+                  <strong>Selected model</strong>
+                  <span>{modelName}</span>
+                </div>
+
+                <div className="analysis-result-row">
+                  <strong>Scale</strong>
+                  <span>
+                    {uploadedMicrograph.scale_value
+                      ? `${uploadedMicrograph.scale_value} ${uploadedMicrograph.scale_unit}`
+                      : "Not specified"}
+                  </span>
+                </div>
+
+                <div className="analysis-result-row">
+                  <strong>Description</strong>
+                  <span>
+                    {uploadedMicrograph.description || "Not specified"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="analysis-links">
+                <a
+                  className="analysis-link"
+                  href={API_ENDPOINTS.micrographs.originalFile(
+                    uploadedMicrograph.stored_filename,
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Open uploaded micrograph
+                </a>
+              </div>
+
+              <div className="analysis-actions">
+                <button
+                  className="analysis-button analysis-button--accent"
+                  type="button"
+                  onClick={handleRunAnalysis}
+                  disabled={isAnalyzing}
+                >
+                  {isAnalyzing ? "Running analysis..." : "Run analysis"}
+                </button>
+              </div>
+            </div>
           )}
 
-          <div style={{ marginTop: "25px" }}>
-            <button
-              type="button"
-              onClick={handleGenerateReport}
-              disabled={isGeneratingReport}
-              style={{
-                padding: "10px 24px",
-                cursor: isGeneratingReport ? "not-allowed" : "pointer",
-              }}
-            >
-              {isGeneratingReport ? "Generating report..." : "Generate report"}
-            </button>
-          </div>
-        </div>
-      )}
+          {analysisResponse && (
+            <div className="analysis-card">
+              <h2 className="analysis-card__title">
+                Analysis completed successfully
+              </h2>
 
-      {generatedReport && (
-        <div
-          style={{
-            marginTop: "35px",
-            padding: "20px",
-            border: "1px solid #dddddd",
-            borderRadius: "8px",
-            maxWidth: "750px",
-          }}
-        >
-          <h2>Report generated successfully</h2>
+              <div className="analysis-result-list">
+                <div className="analysis-result-row">
+                  <strong>Analysis ID</strong>
+                  <span>{analysisResponse.analysis.id}</span>
+                </div>
 
-          <p>
-            <strong>Report ID:</strong> {generatedReport.id}
-          </p>
+                <div className="analysis-result-row">
+                  <strong>Status</strong>
+                  <span>{analysisResponse.analysis.status}</span>
+                </div>
 
-          <p>
-            <strong>Filename:</strong> {generatedReport.filename}
-          </p>
+                <div className="analysis-result-row">
+                  <strong>Model</strong>
+                  <span>{analysisResponse.analysis.model_name}</span>
+                </div>
 
-          <p>
-            <strong>Generated at:</strong> {generatedReport.generated_at}
-          </p>
+                <div className="analysis-result-row">
+                  <strong>Particle count</strong>
+                  <span>{analysisResponse.result.particle_count}</span>
+                </div>
 
-          <a
-            href={API_ENDPOINTS.reports.download(generatedReport.id)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Download report
-          </a>
-        </div>
-      )}
+                <div className="analysis-result-row">
+                  <strong>Total masks</strong>
+                  <span>{analysisResponse.result.total_masks}</span>
+                </div>
+
+                <div className="analysis-result-row">
+                  <strong>Valid masks</strong>
+                  <span>{analysisResponse.result.valid_masks}</span>
+                </div>
+
+                <div className="analysis-result-row">
+                  <strong>Rejected masks</strong>
+                  <span>{analysisResponse.result.rejected_masks}</span>
+                </div>
+              </div>
+
+              <div className="analysis-links">
+                {segmentedFilename && (
+                  <a
+                    className="analysis-link"
+                    href={API_ENDPOINTS.micrographs.segmentedFile(
+                      segmentedFilename,
+                    )}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open segmented image
+                  </a>
+                )}
+
+                {summaryFilename && (
+                  <a
+                    className="analysis-link"
+                    href={API_ENDPOINTS.micrographs.segmentedFile(
+                      summaryFilename,
+                    )}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Open summary figure
+                  </a>
+                )}
+              </div>
+
+              <div className="analysis-actions">
+                <button
+                  className="analysis-button analysis-button--secondary"
+                  type="button"
+                  onClick={handleGenerateReport}
+                  disabled={isGeneratingReport}
+                >
+                  {isGeneratingReport
+                    ? "Generating report..."
+                    : "Generate report"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {generatedReport && (
+            <div className="analysis-card">
+              <h2 className="analysis-card__title">
+                Report generated successfully
+              </h2>
+
+              <div className="analysis-result-list">
+                <div className="analysis-result-row">
+                  <strong>Report ID</strong>
+                  <span>{generatedReport.id}</span>
+                </div>
+
+                <div className="analysis-result-row">
+                  <strong>Filename</strong>
+                  <span>{generatedReport.filename}</span>
+                </div>
+
+                <div className="analysis-result-row">
+                  <strong>Generated at</strong>
+                  <span>{generatedReport.generated_at}</span>
+                </div>
+              </div>
+
+              <div className="analysis-links">
+                <a
+                  className="analysis-link"
+                  href={API_ENDPOINTS.reports.download(generatedReport.id)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Download report
+                </a>
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 };

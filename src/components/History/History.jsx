@@ -1,14 +1,20 @@
 import React, { useCallback, useContext, useEffect, useState } from "react";
 
 import { context } from "../../context/context";
-import { API_ENDPOINTS, apiGet } from "../../services/api";
+import { API_ENDPOINTS, apiGet, apiPostJson } from "../../services/api";
 
 export const History = () => {
   const { user } = useContext(context);
 
   const [analyses, setAnalyses] = useState([]);
+  const [generatedReports, setGeneratedReports] = useState({});
+  const [generatingReportAnalysisId, setGeneratingReportAnalysisId] =
+    useState(null);
+
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const userId = user?.id;
 
   const getFilenameFromPath = (filePath) => {
     if (!filePath) {
@@ -17,8 +23,6 @@ export const History = () => {
 
     return filePath.split("\\").pop().split("/").pop();
   };
-
-  const userId = user?.id;
 
   const loadHistory = useCallback(async () => {
     if (!userId) {
@@ -42,6 +46,33 @@ export const History = () => {
       setIsLoading(false);
     }
   }, [userId]);
+
+  const handleGenerateReport = async (analysisId) => {
+    if (!analysisId) {
+      setErrorMessage("Analysis ID is required to generate a report.");
+      return;
+    }
+
+    setGeneratingReportAnalysisId(analysisId);
+    setErrorMessage("");
+
+    try {
+      const data = await apiPostJson(API_ENDPOINTS.reports.generate, {
+        analysis_id: analysisId,
+      });
+
+      setGeneratedReports((currentReports) => ({
+        ...currentReports,
+        [analysisId]: data.report,
+      }));
+    } catch (error) {
+      setErrorMessage(
+        error.message || "There was an error generating the report.",
+      );
+    } finally {
+      setGeneratingReportAnalysisId(null);
+    }
+  };
 
   useEffect(() => {
     loadHistory();
@@ -91,6 +122,10 @@ export const History = () => {
           const segmentedFilename = result?.segmented_image_path
             ? getFilenameFromPath(result.segmented_image_path)
             : "";
+
+          const generatedReport = generatedReports[analysis.id];
+          const isGeneratingThisReport =
+            generatingReportAnalysisId === analysis.id;
 
           return (
             <div
@@ -202,6 +237,60 @@ export const History = () => {
                     >
                       Open segmented image
                     </a>
+                  )}
+
+                  <div style={{ marginTop: "25px" }}>
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateReport(analysis.id)}
+                      disabled={isGeneratingThisReport}
+                      style={{
+                        padding: "10px 24px",
+                        cursor: isGeneratingThisReport
+                          ? "not-allowed"
+                          : "pointer",
+                      }}
+                    >
+                      {isGeneratingThisReport
+                        ? "Generating report..."
+                        : "Generate report"}
+                    </button>
+                  </div>
+
+                  {generatedReport && (
+                    <div
+                      style={{
+                        marginTop: "20px",
+                        padding: "15px",
+                        border: "1px solid #dddddd",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      <h4>Report generated successfully</h4>
+
+                      <p>
+                        <strong>Report ID:</strong> {generatedReport.id}
+                      </p>
+
+                      <p>
+                        <strong>Filename:</strong> {generatedReport.filename}
+                      </p>
+
+                      <p>
+                        <strong>Generated at:</strong>{" "}
+                        {generatedReport.generated_at}
+                      </p>
+
+                      <a
+                        href={API_ENDPOINTS.reports.download(
+                          generatedReport.id,
+                        )}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Download report
+                      </a>
+                    </div>
                   )}
                 </>
               )}

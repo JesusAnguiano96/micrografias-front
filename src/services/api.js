@@ -23,6 +23,11 @@ export const API_ENDPOINTS = {
     history: `${API_BASE_URL}/api/analysis/history`,
     getById: (analysisId) => `${API_BASE_URL}/api/analysis/${analysisId}`,
   },
+
+  reports: {
+    generate: `${API_BASE_URL}/api/reports/generate`,
+    download: (reportId) => `${API_BASE_URL}/api/reports/${reportId}/download`,
+  },
 };
 
 export async function apiGet(url) {

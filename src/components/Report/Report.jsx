@@ -18,9 +18,11 @@ export const Report = () => {
 
   const [uploadedMicrograph, setUploadedMicrograph] = useState(null);
   const [analysisResponse, setAnalysisResponse] = useState(null);
+  const [generatedReport, setGeneratedReport] = useState(null);
 
   const [isUploading, setIsUploading] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
   const clearForm = () => {
@@ -43,6 +45,7 @@ export const Report = () => {
     setErrorMessage("");
     setUploadedMicrograph(null);
     setAnalysisResponse(null);
+    setGeneratedReport(null);
 
     const formData = new FormData();
 
@@ -87,6 +90,7 @@ export const Report = () => {
     setIsAnalyzing(true);
     setErrorMessage("");
     setAnalysisResponse(null);
+    setGeneratedReport(null);
 
     try {
       const data = await apiPostJson(API_ENDPOINTS.analysis.run, {
@@ -109,6 +113,31 @@ export const Report = () => {
       );
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    if (!analysisResponse?.analysis?.id) {
+      setErrorMessage("Please run an analysis before generating a report.");
+      return;
+    }
+
+    setIsGeneratingReport(true);
+    setErrorMessage("");
+    setGeneratedReport(null);
+
+    try {
+      const data = await apiPostJson(API_ENDPOINTS.reports.generate, {
+        analysis_id: analysisResponse.analysis.id,
+      });
+
+      setGeneratedReport(data.report);
+    } catch (error) {
+      setErrorMessage(
+        error.message || "There was an error generating the report.",
+      );
+    } finally {
+      setIsGeneratingReport(false);
     }
   };
 
@@ -364,6 +393,54 @@ export const Report = () => {
               Open segmented image
             </a>
           )}
+
+          <div style={{ marginTop: "25px" }}>
+            <button
+              type="button"
+              onClick={handleGenerateReport}
+              disabled={isGeneratingReport}
+              style={{
+                padding: "10px 24px",
+                cursor: isGeneratingReport ? "not-allowed" : "pointer",
+              }}
+            >
+              {isGeneratingReport ? "Generating report..." : "Generate report"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {generatedReport && (
+        <div
+          style={{
+            marginTop: "35px",
+            padding: "20px",
+            border: "1px solid #dddddd",
+            borderRadius: "8px",
+            maxWidth: "750px",
+          }}
+        >
+          <h2>Report generated successfully</h2>
+
+          <p>
+            <strong>Report ID:</strong> {generatedReport.id}
+          </p>
+
+          <p>
+            <strong>Filename:</strong> {generatedReport.filename}
+          </p>
+
+          <p>
+            <strong>Generated at:</strong> {generatedReport.generated_at}
+          </p>
+
+          <a
+            href={API_ENDPOINTS.reports.download(generatedReport.id)}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Download report
+          </a>
         </div>
       )}
     </div>

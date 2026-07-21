@@ -15,6 +15,8 @@ export const Report = () => {
   const [file, setFile] = useState(null);
   const [micrographType, setMicrographType] = useState("TEM");
   const [modelName, setModelName] = useState("SAM");
+  const [sam2Profile, setSam2Profile] = useState("60");
+  const [sam2ExecutionMode, setSam2ExecutionMode] = useState("safe_local");
   const [scaleValue, setScaleValue] = useState("");
   const [scaleUnit, setScaleUnit] = useState("nm");
   const [description, setDescription] = useState("");
@@ -28,12 +30,138 @@ export const Report = () => {
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  const sam2ProfileOptions = [
+    {
+      value: "0",
+      label: "0% overlap",
+      description: "Low or no particle overlap.",
+    },
+    {
+      value: "15",
+      label: "15% overlap",
+      description: "Low overlap profile.",
+    },
+    {
+      value: "30",
+      label: "30% overlap",
+      description: "Moderate overlap profile.",
+    },
+    {
+      value: "45",
+      label: "45% overlap",
+      description: "High overlap profile.",
+    },
+    {
+      value: "60",
+      label: "60% overlap",
+      description: "Very high overlap profile.",
+    },
+  ];
+
+  const sam2ExecutionModeOptions = [
+    {
+      value: "safe_local",
+      label: "Safe local",
+      maxImageSize: 700,
+      pointsPerBatch: 8,
+      description:
+        "Recommended for local GPUs with limited memory. It is safer but may lose fine detail.",
+    },
+    {
+      value: "balanced",
+      label: "Balanced",
+      maxImageSize: 850,
+      pointsPerBatch: 8,
+      description:
+        "Keeps more detail than Safe local, but may require more GPU memory.",
+    },
+    {
+      value: "quality",
+      label: "Quality",
+      maxImageSize: 1000,
+      pointsPerBatch: 4,
+      description:
+        "Preserves more image detail and uses a smaller batch to reduce memory peaks. It can be slower.",
+    },
+  ];
+
   const clearForm = () => {
     setFile(null);
     setMicrographType("TEM");
     setScaleValue("");
     setScaleUnit("nm");
     setDescription("");
+  };
+
+  const getFilenameFromPath = (filePath) => {
+    if (!filePath) {
+      return "";
+    }
+
+    return filePath.split("\\").pop().split("/").pop();
+  };
+
+  const getSummaryFilename = (filename) => {
+    if (!filename) {
+      return "";
+    }
+
+    if (filename.includes("_sam_legacy_annotated.png")) {
+      return filename.replace(
+        "_sam_legacy_annotated.png",
+        "_sam_legacy_summary.png",
+      );
+    }
+
+    if (filename.includes("_sam2_") && filename.endsWith("_annotated.png")) {
+      return filename.replace("_annotated.png", "_summary.png");
+    }
+
+    return "";
+  };
+
+  const getSelectedExecutionMode = () => {
+    return (
+      sam2ExecutionModeOptions.find(
+        (mode) => mode.value === sam2ExecutionMode,
+      ) || sam2ExecutionModeOptions[0]
+    );
+  };
+
+  const buildAnalysisParameters = () => {
+    const commonParameters = {
+      factor: 5.95,
+      step_number: 10,
+      pixel_threshold: 140,
+    };
+
+    if (modelName === "SAM") {
+      return {
+        ...commonParameters,
+        points_per_side: 44,
+        pred_iou_thresh: 0.85,
+        stability_score_thresh: 0.97,
+        crop_n_layers: 1,
+        crop_n_points_downscale_factor: 2,
+        min_mask_region_area: 1000,
+        box_nms_thresh: 0.5,
+      };
+    }
+
+    const selectedExecutionMode = getSelectedExecutionMode();
+
+    return {
+      ...commonParameters,
+
+      sam2_profile: sam2Profile,
+      overlap_level: sam2Profile,
+
+      execution_mode: selectedExecutionMode.value,
+      max_image_size: selectedExecutionMode.maxImageSize,
+      points_per_batch: selectedExecutionMode.pointsPerBatch,
+
+      filter_with_legacy_rules: true,
+    };
   };
 
   const handleUpload = async (event) => {
@@ -100,18 +228,7 @@ export const Report = () => {
         micrograph_id: uploadedMicrograph.id,
         user_id: user?.id || null,
         model_name: modelName,
-        parameters: {
-          points_per_side: 44,
-          pred_iou_thresh: 0.85,
-          stability_score_thresh: 0.97,
-          crop_n_layers: 1,
-          crop_n_points_downscale_factor: 2,
-          min_mask_region_area: 1000,
-          box_nms_thresh: 0.5,
-          factor: 5.95,
-          step_number: 10,
-          pixel_threshold: 140,
-        },
+        parameters: buildAnalysisParameters(),
       });
 
       setAnalysisResponse(data);
@@ -149,36 +266,11 @@ export const Report = () => {
     }
   };
 
-  const getFilenameFromPath = (filePath) => {
-    if (!filePath) {
-      return "";
-    }
-
-    return filePath.split("\\").pop().split("/").pop();
-  };
+  const selectedExecutionMode = getSelectedExecutionMode();
 
   const segmentedFilename = analysisResponse?.result?.segmented_image_path
     ? getFilenameFromPath(analysisResponse.result.segmented_image_path)
     : "";
-
-  const getSummaryFilename = (filename) => {
-    if (!filename) {
-      return "";
-    }
-
-    if (filename.includes("_sam_legacy_annotated.png")) {
-      return filename.replace(
-        "_sam_legacy_annotated.png",
-        "_sam_legacy_summary.png",
-      );
-    }
-
-    if (filename.includes("_sam2_") && filename.endsWith("_annotated.png")) {
-      return filename.replace("_annotated.png", "_summary.png");
-    }
-
-    return "";
-  };
 
   const summaryFilename = getSummaryFilename(segmentedFilename);
 
@@ -228,17 +320,82 @@ export const Report = () => {
               <select
                 className="analysis-form__select"
                 value={modelName}
-                onChange={(event) => setModelName(event.target.value)}
+                onChange={(event) => {
+                  setModelName(event.target.value);
+                  setAnalysisResponse(null);
+                  setGeneratedReport(null);
+                }}
               >
                 <option value="SAM">SAM classic</option>
                 <option value="SAM2">SAM 2</option>
               </select>
 
               <small className="analysis-form__help">
-                SAM classic runs the real legacy model. SAM 2 is currently
-                simulated.
+                SAM classic runs the legacy SAM model. SAM 2 runs the updated
+                SAM 2 pipeline with overlap-specific profiles.
               </small>
             </div>
+
+            {modelName === "SAM2" && (
+              <>
+                <div className="analysis-form__group">
+                  <label className="analysis-form__label">
+                    SAM 2 overlap profile
+                  </label>
+
+                  <select
+                    className="analysis-form__select"
+                    value={sam2Profile}
+                    onChange={(event) => {
+                      setSam2Profile(event.target.value);
+                      setAnalysisResponse(null);
+                      setGeneratedReport(null);
+                    }}
+                  >
+                    {sam2ProfileOptions.map((profile) => (
+                      <option key={profile.value} value={profile.value}>
+                        {profile.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <small className="analysis-form__help">
+                    Select the configuration according to the estimated particle
+                    overlap level. These profiles were obtained from the PSO
+                    optimization stage and are used as fixed configurations in
+                    the final prototype.
+                  </small>
+                </div>
+
+                <div className="analysis-form__group">
+                  <label className="analysis-form__label">
+                    SAM 2 execution mode
+                  </label>
+
+                  <select
+                    className="analysis-form__select"
+                    value={sam2ExecutionMode}
+                    onChange={(event) => {
+                      setSam2ExecutionMode(event.target.value);
+                      setAnalysisResponse(null);
+                      setGeneratedReport(null);
+                    }}
+                  >
+                    {sam2ExecutionModeOptions.map((mode) => (
+                      <option key={mode.value} value={mode.value}>
+                        {mode.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  <small className="analysis-form__help">
+                    {selectedExecutionMode.description} Current values:
+                    max_image_size={selectedExecutionMode.maxImageSize},
+                    points_per_batch={selectedExecutionMode.pointsPerBatch}.
+                  </small>
+                </div>
+              </>
+            )}
 
             <div className="analysis-form__group">
               <label className="analysis-form__label">Scale value</label>
@@ -331,6 +488,20 @@ export const Report = () => {
                   <span>{modelName}</span>
                 </div>
 
+                {modelName === "SAM2" && (
+                  <>
+                    <div className="analysis-result-row">
+                      <strong>SAM 2 profile</strong>
+                      <span>{sam2Profile}% overlap</span>
+                    </div>
+
+                    <div className="analysis-result-row">
+                      <strong>Execution mode</strong>
+                      <span>{selectedExecutionMode.label}</span>
+                    </div>
+                  </>
+                )}
+
                 <div className="analysis-result-row">
                   <strong>Scale</strong>
                   <span>
@@ -395,6 +566,20 @@ export const Report = () => {
                   <strong>Model</strong>
                   <span>{analysisResponse.analysis.model_name}</span>
                 </div>
+
+                {analysisResponse.analysis.model_name === "SAM2" && (
+                  <>
+                    <div className="analysis-result-row">
+                      <strong>SAM 2 profile</strong>
+                      <span>{sam2Profile}% overlap</span>
+                    </div>
+
+                    <div className="analysis-result-row">
+                      <strong>Execution mode</strong>
+                      <span>{selectedExecutionMode.label}</span>
+                    </div>
+                  </>
+                )}
 
                 <div className="analysis-result-row">
                   <strong>Particle count</strong>

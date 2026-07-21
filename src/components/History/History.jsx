@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 
 import { context } from "../../context/context";
 import { API_ENDPOINTS, apiGet } from "../../services/api";
@@ -18,8 +18,10 @@ export const History = () => {
     return filePath.split("\\").pop().split("/").pop();
   };
 
-  const loadHistory = async () => {
-    if (!user?.id) {
+  const userId = user?.id;
+
+  const loadHistory = useCallback(async () => {
+    if (!userId) {
       setErrorMessage("No authenticated user found.");
       return;
     }
@@ -28,7 +30,7 @@ export const History = () => {
     setErrorMessage("");
 
     try {
-      const url = `${API_ENDPOINTS.analysis.history}?user_id=${user.id}`;
+      const url = `${API_ENDPOINTS.analysis.history}?user_id=${userId}`;
       const data = await apiGet(url);
 
       setAnalyses(data.analyses || []);
@@ -39,11 +41,11 @@ export const History = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userId]);
 
   useEffect(() => {
     loadHistory();
-  }, []);
+  }, [loadHistory]);
 
   return (
     <div style={{ padding: "40px 80px" }}>

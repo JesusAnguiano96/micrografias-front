@@ -12,6 +12,7 @@ export const Report = () => {
 
   const [file, setFile] = useState(null);
   const [micrographType, setMicrographType] = useState("TEM");
+  const [modelName, setModelName] = useState("SAM");
   const [scaleValue, setScaleValue] = useState("");
   const [scaleUnit, setScaleUnit] = useState("nm");
   const [description, setDescription] = useState("");
@@ -96,13 +97,18 @@ export const Report = () => {
       const data = await apiPostJson(API_ENDPOINTS.analysis.run, {
         micrograph_id: uploadedMicrograph.id,
         user_id: user?.id || null,
-        model_name: "SAM2",
+        model_name: modelName,
         parameters: {
           points_per_side: 44,
           pred_iou_thresh: 0.85,
           stability_score_thresh: 0.97,
+          crop_n_layers: 1,
+          crop_n_points_downscale_factor: 2,
           min_mask_region_area: 1000,
           box_nms_thresh: 0.5,
+          factor: 5.95,
+          step_number: 10,
+          pixel_threshold: 140,
         },
       });
 
@@ -194,6 +200,31 @@ export const Report = () => {
             <option value="TEM">TEM</option>
             <option value="SEM">SEM</option>
           </select>
+        </div>
+
+        <div style={{ marginBottom: "20px" }}>
+          <label>
+            <strong>Segmentation model</strong>
+          </label>
+
+          <select
+            value={modelName}
+            onChange={(event) => setModelName(event.target.value)}
+            style={{
+              display: "block",
+              marginTop: "8px",
+              padding: "8px",
+              width: "100%",
+            }}
+          >
+            <option value="SAM">SAM classic</option>
+            <option value="SAM2">SAM 2</option>
+          </select>
+
+          <small style={{ display: "block", marginTop: "6px" }}>
+            SAM classic runs the real legacy model. SAM 2 is currently
+            simulated.
+          </small>
         </div>
 
         <div style={{ marginBottom: "20px" }}>
@@ -302,6 +333,10 @@ export const Report = () => {
 
           <p>
             <strong>Type:</strong> {uploadedMicrograph.micrograph_type}
+          </p>
+
+          <p>
+            <strong>Selected model:</strong> {modelName}
           </p>
 
           <p>

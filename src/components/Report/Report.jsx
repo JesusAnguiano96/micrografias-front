@@ -159,6 +159,15 @@ export const Report = () => {
     ? getFilenameFromPath(analysisResponse.result.segmented_image_path)
     : "";
 
+  const summaryFilename = segmentedFilename.includes(
+    "_sam_legacy_annotated.png",
+  )
+    ? segmentedFilename.replace(
+        "_sam_legacy_annotated.png",
+        "_sam_legacy_summary.png",
+      )
+    : "";
+
   return (
     <div style={{ padding: "40px 80px" }}>
       <h1>New micrograph analysis</h1>
@@ -424,8 +433,20 @@ export const Report = () => {
               href={API_ENDPOINTS.micrographs.segmentedFile(segmentedFilename)}
               target="_blank"
               rel="noreferrer"
+              style={{ display: "block", marginTop: "10px" }}
             >
               Open segmented image
+            </a>
+          )}
+
+          {summaryFilename && (
+            <a
+              href={API_ENDPOINTS.micrographs.segmentedFile(summaryFilename)}
+              target="_blank"
+              rel="noreferrer"
+              style={{ display: "block", marginTop: "10px" }}
+            >
+              Open summary figure
             </a>
           )}
 

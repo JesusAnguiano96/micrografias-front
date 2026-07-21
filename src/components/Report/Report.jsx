@@ -161,14 +161,26 @@ export const Report = () => {
     ? getFilenameFromPath(analysisResponse.result.segmented_image_path)
     : "";
 
-  const summaryFilename = segmentedFilename.includes(
-    "_sam_legacy_annotated.png",
-  )
-    ? segmentedFilename.replace(
+  const getSummaryFilename = (filename) => {
+    if (!filename) {
+      return "";
+    }
+
+    if (filename.includes("_sam_legacy_annotated.png")) {
+      return filename.replace(
         "_sam_legacy_annotated.png",
         "_sam_legacy_summary.png",
-      )
-    : "";
+      );
+    }
+
+    if (filename.includes("_sam2_") && filename.endsWith("_annotated.png")) {
+      return filename.replace("_annotated.png", "_summary.png");
+    }
+
+    return "";
+  };
+
+  const summaryFilename = getSummaryFilename(segmentedFilename);
 
   return (
     <div className="analysis-page">

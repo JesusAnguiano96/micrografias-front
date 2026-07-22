@@ -62,26 +62,26 @@ export const Report = () => {
     {
       value: "safe_local",
       label: "Safe local",
-      maxImageSize: 700,
-      pointsPerBatch: 8,
+      maxImageSize: 500,
+      pointsPerBatch: 2,
       description:
-        "Recommended for local GPUs with limited memory. It is safer but may lose fine detail.",
+        "Most stable option for local GPU tests. It reduces memory usage, but may lose fine detail.",
     },
     {
       value: "balanced",
       label: "Balanced",
-      maxImageSize: 850,
-      pointsPerBatch: 8,
+      maxImageSize: 700,
+      pointsPerBatch: 4,
       description:
-        "Keeps more detail than Safe local, but may require more GPU memory.",
+        "Intermediate option. Keeps more detail than Safe local, but uses more GPU memory.",
     },
     {
       value: "quality",
       label: "Quality",
-      maxImageSize: 1000,
+      maxImageSize: 850,
       pointsPerBatch: 4,
       description:
-        "Preserves more image detail and uses a smaller batch to reduce memory peaks. It can be slower.",
+        "Preserves more image detail. It can be slower and may require more GPU memory.",
     },
   ];
 

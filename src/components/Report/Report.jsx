@@ -63,23 +63,26 @@ export const Report = () => {
       value: "safe_local",
       label: "Safe local",
       maxImageSize: 500,
-      pointsPerBatch: 2,
+      pointsPerBatch: 1,
+      pointsPerSide: 48,
       description:
-        "Most stable option for local GPU tests. It reduces memory usage, but may lose fine detail.",
+        "Most stable option for local GPU tests. It reduces memory usage while preserving acceptable segmentation quality.",
     },
     {
       value: "balanced",
       label: "Balanced",
-      maxImageSize: 700,
-      pointsPerBatch: 4,
+      maxImageSize: 600,
+      pointsPerBatch: 1,
+      pointsPerSide: 48,
       description:
         "Intermediate option. Keeps more detail than Safe local, but uses more GPU memory.",
     },
     {
       value: "quality",
       label: "Quality",
-      maxImageSize: 850,
-      pointsPerBatch: 4,
+      maxImageSize: 700,
+      pointsPerBatch: 2,
+      pointsPerSide: 48,
       description:
         "Preserves more image detail. It can be slower and may require more GPU memory.",
     },
@@ -159,6 +162,7 @@ export const Report = () => {
       execution_mode: selectedExecutionMode.value,
       max_image_size: selectedExecutionMode.maxImageSize,
       points_per_batch: selectedExecutionMode.pointsPerBatch,
+      points_per_side: selectedExecutionMode.pointsPerSide,
 
       filter_with_legacy_rules: true,
     };
@@ -391,7 +395,8 @@ export const Report = () => {
                   <small className="analysis-form__help">
                     {selectedExecutionMode.description} Current values:
                     max_image_size={selectedExecutionMode.maxImageSize},
-                    points_per_batch={selectedExecutionMode.pointsPerBatch}.
+                    points_per_batch={selectedExecutionMode.pointsPerBatch},
+                    points_per_side={selectedExecutionMode.pointsPerSide}.
                   </small>
                 </div>
               </>

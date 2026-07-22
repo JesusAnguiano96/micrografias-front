@@ -4,7 +4,7 @@ import { context } from "../../context/context";
 import { API_ENDPOINTS, apiPostJson } from "../../services/api";
 
 export const Login = ({ setVisibleOther, setVisibleSelf }) => {
-  const { setUser } = useContext(context);
+  const { setUser, setVisibleContact } = useContext(context);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +18,16 @@ export const Login = ({ setVisibleOther, setVisibleSelf }) => {
     e.preventDefault();
     setVisibleSelf(false);
     setVisibleOther(true);
+  };
+
+  const forgotPassword = (e) => {
+    e.preventDefault();
+
+    setVisibleSelf(false);
+
+    if (setVisibleContact) {
+      setVisibleContact(true);
+    }
   };
 
   const login = async (e) => {
@@ -62,7 +72,7 @@ export const Login = ({ setVisibleOther, setVisibleSelf }) => {
               onChange={(e) => setPassword(e.target.value)}
             />
 
-            <a href="#" onClick={(e) => e.preventDefault()}>
+            <a href="#" onClick={forgotPassword}>
               Forgot password?
             </a>
 

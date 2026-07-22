@@ -1,57 +1,64 @@
-import React from 'react'
-import logo from '../../image/logo512.png'
-import { useContext } from "react";
-import { context } from '../../context/context'
+import React, { useContext } from "react";
 import { NavLink } from "react-router-dom";
 
+import logo from "../../image/microscope.svg";
+import { context } from "../../context/context";
 
 export const Navbar = () => {
-  const { user, setUser, setVisibleLogIn, setVisibleContact } = useContext(context);
+  const { user, setUser, setVisibleLogIn, setVisibleContact } =
+    useContext(context);
+
+  const logout = () => {
+    setUser(null);
+  };
 
   return (
     <>
-      <div className='navbar-container'>
-        <div className='logo-container'>
-          <NavLink to="/">
-            <img src={logo} alt="imagen" />
-            <p>RegaLert</p>
+      <div className="navbar-container">
+        <div className="logo-container">
+          <NavLink to={user ? "/report" : "/"}>
+            <img src={logo} alt="Micrograph Analysis System logo" />
+            <p>
+              <strong>MAS</strong>
+            </p>
+            <p>Micrograph Analysis System</p>
           </NavLink>
         </div>
-        <div className='links-container'>
+
+        <div className="links-container">
           <ul>
-            {user != '' ? (
+            {user ? (
               <>
-                <NavLink to="/">
-                  <li>{user}</li>
+                <NavLink to="/report">
+                  <li>{user.email || "User"}</li>
                 </NavLink>
-                <NavLink to="/plants">
-                  <li>My plants</li>
+
+                <NavLink to="/report">
+                  <li>Report</li>
                 </NavLink>
-                <NavLink to="/myplants">
-                  <li>Reminders</li>
+
+                <NavLink to="/history">
+                  <li>History</li>
                 </NavLink>
-                {/* <NavLink to="/history">
-                  <li>Guides</li>
-                </NavLink> */}
-                <NavLink onClick={() => { setUser(false) }} to="#">
-                  <li >Log out</li>
+
+                <NavLink onClick={logout} to="#">
+                  <li>Log out</li>
                 </NavLink>
               </>
+            ) : (
+              <>
+                <NavLink onClick={() => setVisibleLogIn(true)} to="#">
+                  <li>Log in</li>
+                </NavLink>
 
-            ) : <>
-              <NavLink onClick={() => { setVisibleLogIn(true) }} to="#">
-                <li>Log in</li>
-              </NavLink>
-              <NavLink to="/history">
-                <li>Docs</li>
-              </NavLink>
-              <NavLink onClick={() => { setVisibleContact(true) }} to="#">
-                <li>Contact</li>
-              </NavLink>
-            </>}
+                <NavLink onClick={() => setVisibleContact(true)} to="#">
+                  <li>Contact</li>
+                </NavLink>
+              </>
+            )}
           </ul>
         </div>
       </div>
     </>
-  )
-}
+  );
+};

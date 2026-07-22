@@ -1,9 +1,17 @@
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import { context } from "../../context/context";
 import { API_ENDPOINTS, apiGet, apiPostJson } from "../../services/api";
 
 import "../../styles/analysisPages.css";
+
+const ANALYSES_PER_PAGE = 10;
 
 export const History = () => {
   const { user } = useContext(context);
@@ -15,8 +23,25 @@ export const History = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const userId = user?.id;
+
+  const totalAnalyses = analyses.length;
+
+  const totalPages = Math.max(1, Math.ceil(totalAnalyses / ANALYSES_PER_PAGE));
+
+  const currentPageStartIndex = (currentPage - 1) * ANALYSES_PER_PAGE;
+  const currentPageEndIndex = currentPageStartIndex + ANALYSES_PER_PAGE;
+
+  const paginatedAnalyses = useMemo(() => {
+    return analyses.slice(currentPageStartIndex, currentPageEndIndex);
+  }, [analyses, currentPageStartIndex, currentPageEndIndex]);
+
+  const firstVisibleAnalysis =
+    totalAnalyses === 0 ? 0 : currentPageStartIndex + 1;
+
+  const lastVisibleAnalysis = Math.min(currentPageEndIndex, totalAnalyses);
 
   const getFilenameFromPath = (filePath) => {
     if (!filePath) {
@@ -24,6 +49,25 @@ export const History = () => {
     }
 
     return filePath.split("\\").pop().split("/").pop();
+  };
+
+  const getSummaryFilename = (filename) => {
+    if (!filename) {
+      return "";
+    }
+
+    if (filename.includes("_sam_legacy_annotated.png")) {
+      return filename.replace(
+        "_sam_legacy_annotated.png",
+        "_sam_legacy_summary.png",
+      );
+    }
+
+    if (filename.includes("_sam2_") && filename.endsWith("_annotated.png")) {
+      return filename.replace("_annotated.png", "_summary.png");
+    }
+
+    return "";
   };
 
   const loadHistory = useCallback(async () => {
@@ -40,6 +84,7 @@ export const History = () => {
       const data = await apiGet(url);
 
       setAnalyses(data.analyses || []);
+      setCurrentPage(1);
     } catch (error) {
       setErrorMessage(
         error.message || "There was an error loading the analysis history.",
@@ -76,9 +121,79 @@ export const History = () => {
     }
   };
 
+  const goToPreviousPage = () => {
+    setCurrentPage((page) => Math.max(1, page - 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage((page) => Math.min(totalPages, page + 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goToPage = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
+  const renderPagination = () => {
+    if (totalAnalyses <= ANALYSES_PER_PAGE) {
+      return null;
+    }
+
+    return (
+      <div className="analysis-pagination">
+        <button
+          className="analysis-button analysis-button--secondary"
+          type="button"
+          onClick={goToPreviousPage}
+          disabled={currentPage === 1}
+        >
+          Previous
+        </button>
+
+        <div className="analysis-pagination__pages">
+          {Array.from({ length: totalPages }, (_, index) => {
+            const pageNumber = index + 1;
+
+            return (
+              <button
+                key={pageNumber}
+                className={`analysis-pagination__button ${
+                  currentPage === pageNumber
+                    ? "analysis-pagination__button--active"
+                    : ""
+                }`}
+                type="button"
+                onClick={() => goToPage(pageNumber)}
+              >
+                {pageNumber}
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          className="analysis-button analysis-button--secondary"
+          type="button"
+          onClick={goToNextPage}
+          disabled={currentPage === totalPages}
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
 
   return (
     <div className="analysis-page">
@@ -114,8 +229,21 @@ export const History = () => {
         </div>
       )}
 
+      {!isLoading && analyses.length > 0 && (
+        <>
+          <div className="analysis-history-summary">
+            <strong>{totalAnalyses}</strong> analyses found. Showing{" "}
+            <strong>{firstVisibleAnalysis}</strong> to{" "}
+            <strong>{lastVisibleAnalysis}</strong>. Newest analyses appear
+            first.
+          </div>
+
+          {renderPagination()}
+        </>
+      )}
+
       <section>
-        {analyses.map((item) => {
+        {paginatedAnalyses.map((item) => {
           const analysis = item.analysis;
           const micrograph = item.micrograph;
           const result = item.result;
@@ -125,28 +253,6 @@ export const History = () => {
           const segmentedFilename = result?.segmented_image_path
             ? getFilenameFromPath(result.segmented_image_path)
             : "";
-
-          const getSummaryFilename = (filename) => {
-            if (!filename) {
-              return "";
-            }
-
-            if (filename.includes("_sam_legacy_annotated.png")) {
-              return filename.replace(
-                "_sam_legacy_annotated.png",
-                "_sam_legacy_summary.png",
-              );
-            }
-
-            if (
-              filename.includes("_sam2_") &&
-              filename.endsWith("_annotated.png")
-            ) {
-              return filename.replace("_annotated.png", "_summary.png");
-            }
-
-            return "";
-          };
 
           const summaryFilename = getSummaryFilename(segmentedFilename);
 
@@ -348,6 +454,8 @@ export const History = () => {
           );
         })}
       </section>
+
+      {!isLoading && analyses.length > 0 && renderPagination()}
     </div>
   );
 };

@@ -16,7 +16,7 @@ export const Navbar = () => {
     <>
       <div className="navbar-container">
         <div className="logo-container">
-          <NavLink to="/">
+          <NavLink to={user ? "/report" : "/"}>
             <img src={logo} alt="Micrograph Analysis System logo" />
             <p>
               <strong>MAS</strong>
@@ -29,8 +29,8 @@ export const Navbar = () => {
           <ul>
             {user ? (
               <>
-                <NavLink to="/">
-                  <li>{user.email}</li>
+                <NavLink to="/report">
+                  <li>{user.email || "User"}</li>
                 </NavLink>
 
                 <NavLink to="/report">
@@ -49,10 +49,6 @@ export const Navbar = () => {
               <>
                 <NavLink onClick={() => setVisibleLogIn(true)} to="#">
                   <li>Log in</li>
-                </NavLink>
-
-                <NavLink to="#">
-                  <li>Docs</li>
                 </NavLink>
 
                 <NavLink onClick={() => setVisibleContact(true)} to="#">
